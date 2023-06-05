@@ -1,6 +1,7 @@
 import PySimpleGUI as sg
 import pandas as pd
 import sqlite3
+import re
 
 
 # Definir o layout da janela
@@ -93,6 +94,23 @@ def pesquisa_por_nome(nome):
 def atualizar_tabela(valores):
     janela['table_contatos'].update(values=valores)
 
+def aplicar_mascara_telefone(telefone):
+                         
+    #aplica mascara com o formato (##) #####-####
+    telefone_formatado = re.sub(r'(\d{2})(\d{5})(\d{4})', r'(\1) \2-\3', telefone)
+    
+    return telefone_formatado
+
+def exporta_para_excel():
+    
+    contatos_do_banco = listar_contatos()
+    
+    # Converter os dados para um DataFrame do Pandas
+    df = pd.DataFrame(contatos_do_banco, columns=['NOME', 'E-MAIL', 'TELEFONE'])
+
+    # Exportar o DataFrame para um arquivo Excel
+    df.to_excel('contatos.xlsx', index=False)
+    
 
 # Criar a janela
 janela = sg.Window('Lista de contaos', layout)
@@ -132,6 +150,10 @@ while True:
     if evento == 'Carregar contatos':
         contatos = listar_contatos()
         atualizar_tabela(contatos)
+        janela['table_contatos'].update(visible=True)
+
+    if evento == 'Exportar':
+        exporta_para_excel()
 
     if evento == '-PESQUISAR-':
         
@@ -142,5 +164,19 @@ while True:
         
         atualizar_tabela(contatos_pesquisados)
 
+    if evento == '-TELEFONE-':
+
+        #remove as letras
+        
+        if str.isdigit(valores['-TELEFONE-']):
+            
+            telefone = valores['-TELEFONE-']
+            
+            # Atualizar o valor do campo de telefone com a máscara
+            janela['-TELEFONE-'].update(aplicar_mascara_telefone(telefone))
+            
+        else:
+            
+            janela['-TELEFONE-'].update('')
 
 janela.close()
