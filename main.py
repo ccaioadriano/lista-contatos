@@ -2,24 +2,6 @@ import PySimpleGUI as sg
 import pandas as pd
 import sqlite3
 
-# def listar_contatos():
-#     # Criar uma conexão com o banco de dados
-#     conexao = sqlite3.connect('lista-contatos.db')
-
-#     # Criar um cursor para executar comandos SQL
-#     cursor = conexao.cursor()
-
-#     # executa o select
-#     cursor.execute("SELECT nome, email, telefone FROM contatos")
-
-#     contatos = cursor.fetchall()
-    
-#     return contatos.sort()
-
-
-# #INICIA A LISTA DE CONTATOS
-# table_values = listar_contatos()
-
 
 # Definir o layout da janela
 layout = [
@@ -91,6 +73,26 @@ def limpar_campos():
     janela['-EMAIL-'].update('')
     janela['-TELEFONE-'].update('')
 
+def pesquisa_por_nome(nome):
+    # Criar uma conexão com o banco de dados
+    conexao = sqlite3.connect('lista-contatos.db')
+
+    # Criar um cursor para executar comandos SQL
+    cursor = conexao.cursor()
+
+    # executa o select
+    cursor.execute("SELECT nome, email, telefone FROM contatos WHERE nome LIKE ?", (f"{nome}%",))
+
+    contatos = cursor.fetchall()
+    
+    #deixa a lista de contatos em ordem alfabetica
+    contatos.sort()
+    
+    return contatos
+
+def atualizar_tabela(valores):
+    janela['table_contatos'].update(values=valores)
+
 
 # Criar a janela
 janela = sg.Window('Lista de contaos', layout)
@@ -129,22 +131,16 @@ while True:
     
     if evento == 'Carregar contatos':
         contatos = listar_contatos()
-        janela["table_contatos"].update(values=contatos, visible=True)
+        atualizar_tabela(contatos)
 
-    # #evento no campo NOME
-    # if evento == '-NOME-':
-    #     print(janela["-NOME-"].get())
+    if evento == '-PESQUISAR-':
         
-    # #evento no campo EMAIL
-    # if evento == '-EMAIL-':
-    #     print(janela["-EMAIL-"].get())
         
-    # #evento no campo TELEFONE
-    # if evento == '-TELEFONE-':
-    #     print(janela["-TELEFONE-"].get())
+        contatos_pesquisados = pesquisa_por_nome(valores['-PESQUISAR-'])
         
-     #evento no campo PESQUISAR
-    # if evento == '-PESQUISAR-':
-    #     print(janela["-PESQUISAR-"].get())
+        janela['table_contatos'].update(visible=True)
         
+        atualizar_tabela(contatos_pesquisados)
+
+
 janela.close()
