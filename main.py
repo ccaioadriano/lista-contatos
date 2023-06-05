@@ -2,15 +2,33 @@ import PySimpleGUI as sg
 import pandas as pd
 import sqlite3
 
+# def listar_contatos():
+#     # Criar uma conexão com o banco de dados
+#     conexao = sqlite3.connect('lista-contatos.db')
+
+#     # Criar um cursor para executar comandos SQL
+#     cursor = conexao.cursor()
+
+#     # executa o select
+#     cursor.execute("SELECT nome, email, telefone FROM contatos")
+
+#     contatos = cursor.fetchall()
+    
+#     return contatos.sort()
+
+
+# #INICIA A LISTA DE CONTATOS
+# table_values = listar_contatos()
+
 
 # Definir o layout da janela
 layout = [
     [sg.Text('Nome:'), sg.Input(key='-NOME-', expand_x=True, pad=10, enable_events=True)],
     [sg.Text('Email:'), sg.Input(key='-EMAIL-', expand_x=True, pad=10, enable_events=True)],
     [sg.Text('Telefone:'), sg.Input(key='-TELEFONE-', expand_x=True, pad=10, enable_events=True)],
-    [sg.Button('Adicionar'), sg.Button('Exportar')],
-    [sg.Input(key='-PESQUISAR-', enable_events=True)],
-    [sg.Table(values=[], headings=['Nome', 'Email', 'Telefone'], auto_size_columns=True, justification='left', key='table_contatos', expand_x=True)]
+    [sg.Button('Adicionar'), sg.Button('Carregar contatos'), sg.Button('Exportar')],
+    [sg.Input('Pesquisar contato por nome...', key='-PESQUISAR-', enable_events=True)],
+    [sg.Table(values=[], headings=['Nome', 'Email', 'Telefone'], auto_size_columns=True, justification='left', key='table_contatos', expand_x=True, visible=False)]
 ]
 
 
@@ -48,7 +66,8 @@ def insert_contato(nome, email, telefone):
         conexao.commit()
     except:
       print('OCORREU UMA EXCEÇÂO AO INSERIR UM CONTATO')
-    
+
+
 def listar_contatos():
     # Criar uma conexão com o banco de dados
     conexao = sqlite3.connect('lista-contatos.db')
@@ -61,7 +80,10 @@ def listar_contatos():
 
     contatos = cursor.fetchall()
     
-    return contatos.sort()
+    #deixa a lista de contatos em ordem alfabetica
+    contatos.sort()
+    
+    return contatos
 
 
 def limpar_campos():
@@ -78,13 +100,8 @@ cria_database()
 
 # Loop principal
 while True:
-    
     # Ler os eventos e valores da janela
     evento, valores = janela.read()
-
-    #INICIA A LISTA DE CONTATOS
-    table_values = listar_contatos()
-    janela['table_contatos'].update(values=table_values)
 
     # Finalizar o programa se a janela for fechada
     if evento == sg.WINDOW_CLOSED:
@@ -110,6 +127,9 @@ while True:
         else:
             sg.popup('Por favor, preencha todos os campos.')
     
+    if evento == 'Carregar contatos':
+        contatos = listar_contatos()
+        janela["table_contatos"].update(values=contatos, visible=True)
 
     # #evento no campo NOME
     # if evento == '-NOME-':
@@ -123,7 +143,7 @@ while True:
     # if evento == '-TELEFONE-':
     #     print(janela["-TELEFONE-"].get())
         
-    # #evento no campo PESQUISAR
+     #evento no campo PESQUISAR
     # if evento == '-PESQUISAR-':
     #     print(janela["-PESQUISAR-"].get())
         
