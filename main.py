@@ -4,15 +4,22 @@ import sqlite3
 import re
 
 
-# Definir o layout da janela
+sg.theme('DarkBlue3')
+
 layout = [
-    [sg.Text('Nome:'), sg.Input(key='-NOME-', expand_x=True, pad=10, enable_events=True)],
-    [sg.Text('Email:'), sg.Input(key='-EMAIL-', expand_x=True, pad=10, enable_events=True)],
-    [sg.Text('Telefone:'), sg.Input(key='-TELEFONE-', expand_x=True, pad=10, enable_events=True)],
-    [sg.Button('Adicionar'), sg.Button('Carregar contatos'), sg.Button('Exportar')],
-    [sg.Input('Pesquisar contato por nome...', key='-PESQUISAR-', enable_events=True)],
+    [sg.Column([
+        [sg.Frame('', [
+            [sg.Text('Formulário de contato', font=('Arial', 20), justification='center')],
+            [sg.Text('Nome:'), sg.Input(key='-NOME-', expand_x=True, pad=10, enable_events=True)],
+            [sg.Text('Email:'), sg.Input(key='-EMAIL-', expand_x=True, pad=10, enable_events=True)],
+            [sg.Text('Telefone:'), sg.Input(key='-TELEFONE-', expand_x=True, pad=10, enable_events=True)],
+            [sg.Button('Adicionar'), sg.Button('Carregar contatos'), sg.Button('Exportar')],
+            [sg.Input('Pesquisar contato por nome...', key='-PESQUISAR-', enable_events=True), sg.Button('✕', size=(2, 1), font='Arial 8', key='-CLOSE-')]
+        ], element_justification='center', relief=sg.RELIEF_SUNKEN, pad=(20, 20), p=50)]
+    ], justification='center')],
     [sg.Table(values=[], headings=['Nome', 'Email', 'Telefone'], auto_size_columns=True, justification='left', key='table_contatos', expand_x=True, visible=False)]
 ]
+
 
 
 def cria_database():
@@ -68,7 +75,6 @@ def listar_contatos():
     
     return contatos
 
-
 def limpar_campos():
     janela['-NOME-'].update('')
     janela['-EMAIL-'].update('')
@@ -94,6 +100,9 @@ def pesquisa_por_nome(nome):
 def atualizar_tabela(valores):
     janela['table_contatos'].update(values=valores)
 
+def fechar_tabela():
+    janela['table_contatos'].update(visible=False)
+
 def aplicar_mascara_telefone(telefone):
                          
     #aplica mascara com o formato (##) #####-####
@@ -113,7 +122,10 @@ def exporta_para_excel():
     
 
 # Criar a janela
-janela = sg.Window('Lista de contaos', layout)
+janela = sg.Window('Lista de contaos', layout, resizable=True, grab_anywhere=True, finalize=True)
+
+janela.maximize()
+
 
 #INSTANCIA DO BD
 cria_database()
@@ -149,8 +161,12 @@ while True:
     
     if evento == 'Carregar contatos':
         contatos = listar_contatos()
-        atualizar_tabela(contatos)
-        janela['table_contatos'].update(visible=True)
+        
+        if len(contatos) == 0:
+            sg.popup('Não há contatos existentes no momento.')
+        else:    
+            atualizar_tabela(contatos)
+            janela['table_contatos'].update(visible=True)    
 
     if evento == 'Exportar':
         exporta_para_excel()
@@ -163,6 +179,10 @@ while True:
         janela['table_contatos'].update(visible=True)
         
         atualizar_tabela(contatos_pesquisados)
+
+
+    if evento == '-CLOSE-':
+        fechar_tabela()
 
     if evento == '-TELEFONE-':
 
@@ -179,4 +199,5 @@ while True:
             
             janela['-TELEFONE-'].update('')
 
+janela
 janela.close()
